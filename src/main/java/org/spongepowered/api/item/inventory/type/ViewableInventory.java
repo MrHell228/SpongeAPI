@@ -28,6 +28,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.ContainerType;
@@ -35,12 +36,12 @@ import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.menu.InventoryMenu;
-import org.spongepowered.math.vector.Vector2i;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -126,6 +127,15 @@ public interface ViewableInventory extends Inventory {
         interface BuildingStep {
 
             /**
+             * Adds dummy-slots to the inventory at given indizes.
+             *
+             * @param at the indizes
+             *
+             * @return the dummy building step
+             */
+            DummyStep dummySlots(List<Integer> at);
+
+            /**
              * Adds dummy-slots to the inventory.
              *
              * @param count the amount of slots to add
@@ -134,36 +144,6 @@ public interface ViewableInventory extends Inventory {
              * @return the dummy building step
              */
             DummyStep dummySlots(int count, int offset);
-
-            /**
-             * Adds dummy-slots to the inventory.
-             *
-             * @param count the amount of slots to add
-             * @param offset the offset for adding the slots
-             *
-             * @return the dummy building step
-             */
-            DummyStep dummySlots(int count, Vector2i offset);
-
-            /**
-             * Adds a grid of dummy-slots to the inventory.
-             *
-             * @param size the size of the grid
-             * @param offset the offset for adding the slots
-             *
-             * @return the dummy building step
-             */
-            DummyStep dummyGrid(Vector2i size, int offset);
-
-            /**
-             * Adds a grid of dummy-slots to the inventory.
-             *
-             * @param size the size of the grid
-             * @param offset the offset for adding the slots
-             *
-             * @return the dummy building step
-             */
-            DummyStep dummyGrid(Vector2i size, Vector2i offset);
 
             /**
              * Adds given slots to the inventory.
@@ -176,39 +156,6 @@ public interface ViewableInventory extends Inventory {
             BuildingStep slots(List<Slot> source, int offset);
 
             /**
-             * Adds given slots to the inventory.
-             *
-             * @param source the source slots.
-             * @param offset the offset for adding the slots
-             *
-             * @return the building step
-             */
-            BuildingStep slots(List<Slot> source, Vector2i offset);
-
-            /**
-             * Adds given slots to the inventory in a grid.
-             *
-             * @param source the source slots.
-             * @param size the size if the grid
-             * @param offset the offset for adding the slots.
-             *
-             * @return the building step
-             */
-            BuildingStep grid(List<Slot> source, Vector2i size, int offset);
-
-            /**
-             * Adds given slots to the inventory in a grid.
-             *
-             * @param source the source slots.
-             * @param size the size if the grid
-             * @param offset the offset for adding the slots.
-             *
-             * @return the building step
-             */
-            BuildingStep grid(List<Slot> source, Vector2i size, Vector2i offset);
-            // provide target slot index/position
-
-            /**
              * Adds given slots to the inventory at given indizes.
              *
              * @param source the source slots
@@ -219,26 +166,17 @@ public interface ViewableInventory extends Inventory {
             BuildingStep slotsAtIndizes(List<Slot> source, List<Integer> at);
 
             /**
-             * Adds given slots to the inventory at given positions
-             *
-             * @param source the source slots
-             * @param at the indizes
-             *
-             * @return the building step
-             */
-            BuildingStep slotsAtPositions(List<Slot> source, List<Vector2i> at);
-
-            /**
              * Adds all undefined slots as dummy slots.
              *
              * @return the building step.
              */
             DummyStep fillDummy();
 
+            BuildingStep replacePersonal(Function<Player, Inventory> personalInventorySupplier);
+
             /**
              * Completes the inventory structure.
-             * <p>If no slots are defined this will create the structure mirroring the vanilla type.</p>
-             * <p>If some but not all slots are defined undefined slots will be defined using {@link #fillDummy()}</p>
+             * Undefined slots will be defined as regular empty slots.
              *
              * @return the end step
              */
